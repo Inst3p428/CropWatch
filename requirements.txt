@@ -6,3 +6,5 @@ requests
 Flask-Migrate
 werkzeug
 python-dotenv
+itsdangerous
+python-dotenv
