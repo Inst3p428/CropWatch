@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CropWatch - Smart Farming Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        /* Navigation */
+        .navbar {
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .logo span {
+            color: #ffd700;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin-left: 30px;
+            padding: 8px 20px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-links .login-btn {
+            background: #ffd700;
+            color: #1e3c72;
+            font-weight: bold;
+        }
+
+        .nav-links .login-btn:hover {
+            background: #ffed4a;
+        }
+
+        /* Hero Section */
+        .hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 50px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .hero-content {
+            flex: 1;
+            padding-right: 50px;
+        }
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #ffd700;
+            color: #1e3c72;
+        }
+
+        .btn-primary:hover {
+            background: #ffed4a;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            color: #1e3c72;
+            transform: translateY(-2px);
+        }
+
+        .hero-image {
+            flex: 1;
+            text-align: center;
+        }
+
+        .hero-image img {
+            max-width: 100%;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 80px 50px;
+            background: white;
+            color: #333;
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 50px;
+            color: #1e3c72;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 30px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #1e3c72;
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* Stats Section */
+        .stats {
+            background: linear-gradient(135deg, #2a5298, #1e3c72);
+            padding: 60px 50px;
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .stat-item h3 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #ffd700;
+        }
+
+        .stat-item p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Footer */
+        .footer {
+            background: #1a2a3a;
+            padding: 40px 50px;
+            color: white;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .footer-section h4 {
+            margin-bottom: 20px;
+            color: #ffd700;
+        }
+
+        .footer-section p {
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            margin-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            opacity: 0.7;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 20px;
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .nav-links a {
+                margin: 0 10px;
+            }
+
+            .hero {
+                flex-direction: column;
+                text-align: center;
+                padding: 30px;
+            }
+
+            .hero-content {
+                padding-right: 0;
+                margin-bottom: 30px;
+            }
+
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .cta-buttons {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="logo">
+            Crop<span>Watch</span>
+        </div>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#stats">Impact</a>
+            <a href="#about">About</a>
+            <a href="{{ url_for('auth.login') }}" class="login-btn"> Login</a>
+            
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Smart Farming with CropWatch</h1>
+            <p>Monitor crop health, track yields, and get expert recommendations - all in one place. Empowering farmers with data-driven insights.</p>
+            <!--<div class="cta-buttons">
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary"> Farmer Dashboard</a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-secondary"> Officer Portal</a>
+            </div> -->
+        </div>
+        <div class="hero-image">
+            <!-- You can add an image here -->
+            <div style="background: rgba(255,255,255,0.1); padding: 100px; border-radius: 20px;">
+                <img src="/static/images/farming.jpg" alt="Farmer image"/>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <h2>Why Choose CropWatch?</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🌱</div>
+                <h3>Crop Health Tracking</h3>
+                <p>Monitor the health status of your crops in real-time with our advanced tracking system.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Yield Analytics</h3>
+                <p>Track and analyze your farm's yield data to make informed decisions.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💧</div>
+                <h3>Soil Monitoring</h3>
+                <p>Keep track of soil moisture and health for optimal growing conditions.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">👨‍🌾</div>
+                <h3>Expert Advice</h3>
+                <p>Receive personalized recommendations from agricultural officers.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section id="stats" class="stats">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <h3>500+</h3>
+                <p>Farmers Connected</p>
+            </div>
+            <div class="stat-item">
+                <h3>1000+</h3>
+                <p>Acres Monitored</p>
+            </div>
+            <div class="stat-item">
+                <h3>50+</h3>
+                <p>Officers Active</p>
+            </div>
+            <div class="stat-item">
+                <h3>95%</h3>
+                <p>Farmer Satisfaction</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>CropWatch</h4>
+                <p>Smart farming solutions for modern agriculture. Empowering farmers with data-driven insights.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <p><a href="#features" style="color: white; text-decoration: none;">Features</a></p>
+                <p><a href="#stats" style="color: white; text-decoration: none;">Impact</a></p>
+                <p><a href="#about" style="color: white; text-decoration: none;">About Us</a></p>
+            </div>
+            <div class="footer-section">
+                <h4>Contact</h4>
+                <p>Email: info@cropwatch.com</p>
+                <p>Phone: +254 700 000 000</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 CropWatch. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

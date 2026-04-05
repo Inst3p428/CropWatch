@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card" style="
+    max-width:600px;
+    margin:auto;
+">
+
+    <h2 style="margin-bottom:20px;">Edit Officer</h2>
+
+    <!-- Back Button -->
+    <a href="{{ url_for('admin.view_officers') }}"
+       class="btn btn-back">
+       ← Back to Officers
+    </a>
+
+    <br><br>
+
+    <form method="POST">
+
+        <label style="font-weight:600;">Full Name</label><br>
+        <input type="text"
+               name="full_name"
+               value="{{ officer.full_name }}"
+               required
+               style="
+                   width:100%;
+                   padding:10px;
+                   margin-top:6px;
+                   margin-bottom:15px;
+                   border:1px solid #d1d5db;
+                   border-radius:6px;
+               ">
+
+        <label style="font-weight:600;">Email</label><br>
+        <input type="email"
+               name="email"
+               value="{{ officer.email }}"
+               required
+               style="
+                   width:100%;
+                   padding:10px;
+                   margin-top:6px;
+                   margin-bottom:15px;
+                   border:1px solid #d1d5db;
+                   border-radius:6px;
+               ">
+
+        <label style="font-weight:600;">Role</label><br>
+        <select name="role"
+                required
+                style="
+                    width:100%;
+                    padding:10px;
+                    margin-top:6px;
+                    margin-bottom:20px;
+                    border:1px solid #d1d5db;
+                    border-radius:6px;
+                ">
+            <option value="officer"
+                {% if officer.role == "officer" %}selected{% endif %}>
+                Officer
+            </option>
+
+            <option value="admin"
+                {% if officer.role == "admin" %}selected{% endif %}>
+                Admin
+            </option>
+        </select>
+
+        <button type="submit"
+                class="btn btn-primary">
+            Update Officer
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}

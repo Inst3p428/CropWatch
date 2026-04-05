@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="dashboard-container">
+
+    <h2 class="dashboard-title"> Farmer Dashboard</h2>
+    <div class="tabs">
+
+        <button class="tab-btn active" onclick="openTab(event,'overview')">Overview</button>
+        <!--<button class="tab-btn" onclick="openTab(event,'charts')">Charts</button>-->
+        <!--<button class="tab-btn" onclick="openTab(event,'performance')">Crop Performance</button>-->
+        <!--<button class="tab-btn" onclick="openTab(event,'soil')">Soil Health</button>-->
+        <button class="tab-btn" onclick="openTab(event,'alerts')">Notifications</button>
+        
+
+
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="dashboard-actions">
+        <a href="{{ url_for('farmer.add_soil_health') }}" class="btn"> Add Soil Health</a>
+        <a href="{{ url_for('farmer.add_crop_health') }}" class="btn"> Add Crop Health</a>
+        <a href="{{ url_for('farmer.add_farm_record') }}" class="btn"> Add Farm Record</a>
+        <!--<a href="{{ url_for('auth.logout') }}" class="btn logout"> Logout</a> -->
+    </div>
+    
+
+    <!-- PROFILE CARD -->
+    
+        <div class="profile-card">
+            <h3>Welcome, {{ current_user.full_name }} </h3>
+            <p><strong>County:</strong> {{ current_user.county }}</p>
+            <p><strong>Sub-county:</strong> {{ current_user.sub_county }}</p>
+            
+        </div>
+    
+
+    <div id="alerts" class="tab-content">
+
+    <h3>⚠ Officer Alerts</h3>
+
+    {% if alerts %}
+    <ul class="alert-list">
+
+    {% for alert in alerts %}
+    <li class="alert-item {{ alert.priority|lower }}{%if not alert.is_read %}unread{% endif%}">
+        
+     <div class="alert-header-compact">
+                <span class="alert-crop-badge">
+                     {{ alert.crop_name }}
+                    <span class="health-indicator {{ alert.health_status|lower }}">
+                        {{ alert.health_status }}
+                    </span>
+                </span>
+                <span class="alert-priority-tag {{ alert.priority|lower }}">
+                    {{ alert.priority }}
+                </span>
+            </div>
+            
+            <div class="alert-content">
+                <strong>Recommendation:</strong> {{ alert.recommendation }}
+            </div>
+            
+            <div class="alert-footer-compact">
+                <span class="alert-date"> {{ alert.created_at.strftime('%d %b %Y') }}</span>
+                <span class="crop-date"> {{ alert.crop_date.strftime('%d %b %Y') }}</span>
+                {% if alert.pest_disease and alert.pest_disease != 'None' %}
+                <span class="pest-tag"> {{ alert.pest_disease }}</span>
+                {% endif %}
+                <!--{% if not alert.is_read %}
+                <span class="new-tag">NEW</span>
+                {% endif %}-->
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No alerts from officers.</p>
+    {% endif %}
+
+    </div>
+
+
+
+
+     <!-- CHART GRID with Enhancements -->
+        <div class="chart-grid">
+            <!-- Rainfall Trend Card -->
+            <div class="chart-card">
+                <h4> Rainfall Trend (Last 30 Days)</h4>
+                <div class="chart-header">
+                    {% if rainfall %}
+                        {% set total_rainfall = rainfall | map(attribute='rainfall_mm') | sum %}
+                        {% set max_rainfall = rainfall | map(attribute='rainfall_mm') | max %}
+                        <span class="chart-stat">Total: {{ "%.1f"|format(total_rainfall) }} mm</span>
+                        <span class="chart-stat">Peak: {{ "%.1f"|format(peak_rainfall) }} mm</span>
+                    {% else %}
+                        <span class="chart-stat">No data available</span>
+                    {% endif %}
+                </div>
+                <div id="rainfallChart"></div>
+                <div class="chart-footer">
+                    {% if rainfall %}
+                        {% if total_rainfall > 100 %}
+                            <span class="badge-success"> Good rainfall for crops</span>
+                        {% elif total_rainfall > 50 %}
+                            <span class="badge-warning"> Moderate rainfall</span>
+                        {% else %}
+                            <span class="badge-info"> Consider irrigation</span>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Soil Moisture Card -->
+            <div class="chart-card">
+                <h4> Soil Moisture Levels</h4>
+                <div class="chart-header">
+                    {% if soil %}
+                        {% set latest_moisture = soil[-1].moisture_percentage %}
+                        <span class="chart-stat">Current: {{ latest_moisture }}%</span>
+                        <span class="chart-stat">Optimal: 50-70%</span>
+                    {% else %}
+                        <span class="chart-stat">No data available</span>
+                    {% endif %}
+                </div>
+                <div id="soilChart"></div>
+                {% if soil %}
+                <div class="moisture-indicator">
+                    <div class="moisture-bar" style="width: {{ latest_moisture }}%"></div>
+                </div>
+                <div class="chart-footer">
+                    {% if latest_moisture >= 50 and latest_moisture <= 70 %}
+                        <span class="badge-success"> Moisture level is optimal</span>
+                    {% elif latest_moisture < 50 %}
+                        <span class="badge-warning"> Soil needs irrigation</span>
+                    {% else %}
+                        <span class="badge-info"> Excess moisture - improve drainage</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Yield Per Crop Card -->
+            <div class="chart-card">
+                <h4> Yield Per Crop (kg)</h4>
+                <div class="chart-header">
+                    {% if cropYields %}
+                        {% set total_yield = cropYields | sum %}
+                        {% set max_yield = cropYields | max %}
+                        {% set max_crop_index = cropYields.index(max_yield) %}
+                        <span class="chart-stat">Total: {{ "%.0f"|format(total_yield) }} kg</span>
+                        <span class="chart-stat">Best: {{ cropNames[max_crop_index] }} ({{ "%.0f"|format(max_yield) }} kg)</span>
+                    {% endif %}
+                </div>
+                <div id="yieldChart"></div>
+                {% if records %}
+                <div class="yield-comparison">
+                    <table class="mini-table">
+                        {% for record in records[:3] %}  <!-- Show top 3 records -->
+                        <tr>
+                            <td> {{ record.crop.crop_name }}</td>
+                            <td>{{ record.yield_kg }} kg</td>
+                            
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Crop Health Summary Card -->
+            <div class="chart-card">
+                <h4> Crop Health Status</h4>
+                <div class="chart-header">
+                    {% if health %}
+                        {% set healthy_count = health | selectattr('health_status', 'equalto', 'Healthy') | list | length %}
+                        {% set fair_count = health | selectattr('health_status', 'equalto', 'Fair') | list | length %}
+                        {% set poor_count = health | selectattr('health_status', 'equalto', 'Poor') | list | length %}
+                        <span class="chart-stat">Healthy: {{ healthy_count }}</span>
+                        <span class="chart-stat">Fair: {{ fair_count }}</span>
+                        <span class="chart-stat">Poor: {{ poor_count }}</span>
+                    {% endif %}
+                </div>
+                <div id="healthChart"></div>
+                {% if health %}
+                <div class="health-breakdown">
+                    <div class="health-item">
+                        <span class="health-dot healthy"></span>
+                        <span>Healthy: {{ healthy_count }} crop{% if healthy_count != 1 %}s{% endif %}</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-dot fair"></span>
+                        <span>Fair: {{ fair_count }} crop{% if fair_count != 1 %}s{% endif %}</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-dot poor"></span>
+                        <span>Poor: {{ poor_count }} crop{% if poor_count != 1 %}s{% endif %}</span>
+                    </div>
+                </div>
+                <div class="chart-footer">
+                    {% if poor_count > 0 %}
+                    <a href="{{ url_for('farmer.add_crop_health') }}" class="btn-small" onclick="document.getElementById('crop-health-section').scrollIntoView({behavior: 'smooth'}); return false;">
+                         View affected crops
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    
+    
+
+    <!-- CROP PERFORMANCE TABLE -->
+    <div class="table-card">
+        <h3>Crop Performance</h3>
+
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>Crop</th>
+                    <th>Date</th>
+                    <th>Remarks</th>
+                    <th>Yield (kg)</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for record in records %}
+                <tr>
+                    <td>{{ record.crop.crop_name }}</td>
+                    <td>{{ record.harvest_date }}</td>
+
+                    <td>
+                        {{ record.remarks if record else 'N/A' }}
+                    </td>
+
+                    <td>{{ record.yield_kg }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+
+
+
+<!-- DATA FOR CHARTS -->
+<script>
+    const cropNames = {{ crop_names | tojson }};
+    const cropYields = {{ crop_yields | tojson }};
+
+    const rainfallDates = {{ rainfall_dates  | tojson }};
+    const rainfallValues = {{ rainfall_values | tojson }};
+
+    const soilDates = {{ soil | map(attribute='date') | list | tojson }};
+    const soilValues = {{ soil | map(attribute='moisture_percentage') | list | tojson }};
+
+    const seasons = {{ records | map(attribute='season') | list | tojson }};
+    const yields = {{ records | map(attribute='yield_kg') | list | tojson }};
+
+    const healthLabels = {{ health | map(attribute='health_status') | list | tojson }};
+</script>
+
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+
+{% endblock %}

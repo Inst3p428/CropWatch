@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="advisory-container">
+
+<div class="advisory-card">
+
+<h2>🧑‍🌾 Officer Advisory</h2>
+
+ <div class="crop-info">
+            <p><strong>Crop:</strong> {{ crop_health.crop.crop_name if crop_health.crop else 'N/A' }}</p>
+            <p><strong>Health Status:</strong> {{ crop_health.health_status }}</p>
+            <p><strong>Date:</strong> {{ crop_health.date }}</p>
+            {% if crop_health.pest_or_disease %}
+            <p><strong>Pest/Disease:</strong> {{ crop_health.pest_or_disease }}</p>
+            {% endif %}
+        </div>    
+    
+<form method="POST">
+
+<input type="hidden" name="crop_health_id" value="{{ crop_health.id }}">
+
+<div class="form-group">
+<label>Recommendation</label>
+<textarea name="recommendation" class="form-control" rows="4" required></textarea>
+</div>
+
+<div class="form-group">
+<label>Priority</label>
+<select name="priority" class="form-control">
+<option value="Low">Low</option>
+<option value="Medium">Medium</option>
+<option value="High">High</option>
+</select>
+</div>
+
+<button type="submit" class="btn-save">Save Advisory</button>
+
+</form>
+
+</div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,45 @@
+# Environment variables (CRITICAL - contains secrets)
+.env
+.env.local
+.env.production
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Database files (local database)
+*.db
+*.sqlite
+*.sqlite3
+instance/
+
+# Virtual environment
+venv/
+env/
+ENV/
+.venv
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Flask specific
+flask_session/
+.DS_Store
+
+# Backup files
+*.bak
+*.backup
+
+# PythonAnywhere specific
+*.pyc

@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block content %}
+<a href="{{ url_for('farmer.dashboard') }}" class="btn-secondary">
+                ← Back to Dashboard
+            </a>
+            <br><br>
+<div class="form-page">
+    
+    <div class="form-card">
+        <div class="form-header">
+            <h2> Add Soil Health Record</h2>
+            
+        </div>
+
+        <form method="POST" class="styled-form">
+
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" name="date" required>
+            </div>
+
+            <div class="form-group">
+                <label>Moisture (%)</label>
+                <input type="number" step="0.1" name="moisture_percentage" required>
+            </div>
+
+            <div class="form-group">
+                <label>Observation</label>
+                <textarea name="observation" rows="3"></textarea>
+            </div>
+
+            <button type="submit" class="btn-primary">Save Record</button>
+
+        </form>
+    </div>
+
+</div>
+
+<!-- SOIL HEALTH RECORDS TABLE -->
+    <div class="table-card" style="margin-top: 30px;">
+        <h3>📊 Soil Health Records</h3>
+
+        {% if soil_records and soil_records|length > 0 %}
+            <div class="table-responsive">
+                <table class="styled-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Moisture (%)</th>
+                            <th>Observation</th>
+                            <th>Recorded At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in soil_records %}
+                        <tr>
+                            <td>{{ record.date.strftime('%Y-%m-%d') if record.date else 'N/A' }}</td>
+                            <td>
+                                <span class="moisture-value">{{ record.moisture_percentage }}%</span>
+                            </td>
+                            <td>{{ record.observation or 'No observations' }}</td>
+                            <td>{{ record.recorded_at.strftime('%Y-%m-%d') if record.recorded_at else 'N/A' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <p>📊 No soil health records yet</p>
+                <p>Use the form above to add your first soil health record.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
