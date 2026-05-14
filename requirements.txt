@@ -1,0 +1,10 @@
+Flask
+Flask-SQLAlchemy
+Flask-Login
+PyMySQL
+requests
+Flask-Migrate
+werkzeug
+python-dotenv
+itsdangerous
+python-dotenv

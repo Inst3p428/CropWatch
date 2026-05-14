@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CropWatch</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/main.css') }}">
+
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: #f1f5f9;
+        }
+        .dashboard-container {
+            padding: 0;
+            margin: 0;
+        }
+                /* Reduce spacing after tabs */
+        .tabs {
+            margin-bottom: 5px;
+        }
+
+                /* Reduce spacing before profile card */
+        .profile-card {
+            margin-top: 15px;
+        }
+
+        header {
+            background: #1f2937;
+            color: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title h2 {
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-name {
+            font-size: 14px;
+            color: #e2e8f0;
+        }
+
+        .logout-btn {
+            background: #dc2626;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #b91c1c;
+        }
+
+        main {
+            padding: 5px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .btn {
+            padding: 8px 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-warning { background: #f59e0b; color: white; }
+        .btn-danger { background: #dc2626; color: white; }
+        .btn-back { background: #6b7280; color: white; }
+    </style>
+
+</head>
+
+<body>
+
+    <header>
+        <div >
+            <h2> CropWatch Farm Management System</h2>
+        </div>
+        
+        <div class="header-actions">
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('auth.logout') }}" class="logout-btn"> Logout</a>
+            <div class="user-info">
+                
+            </div>
+            {% endif %}
+        </div>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <script>
+    function openTab(evt, tabName){
+        var tabs = document.getElementsByClassName("tab-content");
+        for (var i = 0; i < tabs.length; i++){
+            tabs[i].classList.remove("active");
+        }
+        var btns = document.getElementsByClassName("tab-btn");
+        for (var i = 0; i < btns.length; i++){
+            btns[i].classList.remove("active");
+        }
+        document.getElementById(tabName).classList.add("active");
+        evt.currentTarget.classList.add("active");
+    }
+    </script>
+</body>
+</html>

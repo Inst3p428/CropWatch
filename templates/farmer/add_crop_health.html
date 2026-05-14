@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+{% block content %}
+<a href="{{ url_for('farmer.dashboard') }}" class="btn-secondary">
+                ← Back to Dashboard
+            </a>
+            <br><br>
+
+<div class="form-page">
+
+    <div class="form-card">
+        <!--
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for message in messages %}
+                     <p>{{ message }}</p>
+                    {% endfor %}
+                 </div>
+            {% endif %}
+        {% endwith %}
+        -->
+        <div class="form-header">
+            <h2> Add Crop Health Record</h2>
+            <span class="crop-count">
+                Total Crops: {{ crops|length }}
+            </span>
+        </div>
+
+        <form method="POST" class="styled-form">
+
+            <div class="form-group">
+                <label>Crop</label>
+                <select name="crop_id" required>
+                    <option value="">-- Select Crop --</option>
+                    {% for crop in crops %}
+                        <option value="{{ crop.id }}">{{ crop.crop_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" name="date" required>
+            </div>
+
+            <div class="form-group">
+                <label>Health Status</label>
+                <select name="health_status" required>
+                    <option value="">-- Select Status --</option>
+                    <option>Healthy</option>
+                    <option>Fair</option>
+                    <option>Poor</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Pest / Disease</label>
+                <input type="text" name="pest" placeholder="Optional">
+            </div>
+
+            <div class="form-group">
+                <label>Notes</label>
+                <textarea name="notes" rows="3" placeholder="Optional observations"></textarea>
+            </div>
+
+            <button type="submit" class="btn-primary">
+                Save Record
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+<!-- ✅ CROP HEALTH RECORDS TABLE -->
+<div class="table-card" style="margin-top: 30px;">
+    <div class="table-header">
+        <h3> Crop Health Records </h3>
+        <div class="view-toggle">
+            <a href="{{ url_for('farmer.add_crop_health', view='latest') }}" 
+               class="toggle-btn {% if view_mode == 'latest' %}active{% endif %}">
+                 Latest per Crop ({{ latest_count }})
+            </a>
+            <a href="{{ url_for('farmer.add_crop_health', view='all') }}" 
+               class="toggle-btn {% if view_mode == 'all' %}active{% endif %}">
+                📊 View All ({{ total_records }})
+            </a>
+        </div>
+    </div>
+    
+    {% if crop_health_records and crop_health_records|length > 0 %}
+        <div class="table-responsive">
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>Crop</th>
+                        <th>Date</th>
+                        <th>Health Status</th>
+                        <th>Pest / Disease</th>
+                        <th>Notes</th>
+                        <th>Recorded At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in crop_health_records %}
+                    <tr>
+                        <td>
+                            <span class="crop-name">
+                                {% if record.crop.crop_name == 'Maize' %}
+                                {% elif record.crop.crop_name == 'Rice' %}
+                                {% elif record.crop.crop_name == 'Beans' %}
+                                {% else %}
+                                {% endif %}
+                                {{ record.crop.crop_name if record.crop else 'Unknown' }}
+                            </span>
+                        </td>
+                        <td>{{ record.date.strftime('%Y-%m-%d') if record.date else 'N/A' }}</td>
+                        <td>
+                            <span class="status-badge 
+                                {% if record.health_status == 'Healthy' %}healthy
+                                {% elif record.health_status == 'Fair' %}fair
+                                {% else %}poor{% endif %}">
+                                {{ record.health_status }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if record.pest_or_disease and record.pest_or_disease != 'None' %}
+                                <span class="pest-tag"> {{ record.pest_or_disease }}</span>
+                            {% else %}
+                                <span class="no-pest">None</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ record.notes or 'No notes' }}</td>
+                        <td>{{ record.recorded_at.strftime('%Y-%m-%d %H:%M') if record.recorded_at else 'N/A' }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                {% set has_harvest = farm_records|selectattr('crop_id', 'equalto', record.crop_id)|list|length > 0 %}
+        
+                                {% if has_harvest %}
+                                    <span class="locked-badge" title="Cannot edit - crop has been harvested">Locked</span>
+                                {% else %}
+                                <button onclick="openEditModal({{ record.id }})" 
+                                        class="btn-edit" title="Edit Record">
+                                    Edit
+                                </button>
+                                <button onclick="confirmDelete({{ record.id }})" 
+                                        class="btn-delete" title="Delete Record">
+                                    Delete
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>📊 No crop health records yet</p>
+            <p>Use the form above to add your first crop health record.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Edit Crop Health Modal -->
+<div id="editCropHealthModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeEditModal()">&times;</span>
+        <h3> Edit Crop Health Record</h3>
+        <form id="editCropHealthForm" method="POST" action="">
+            <div class="form-group">
+                <label>Crop</label>
+                <select name="crop_id" id="edit_crop_id" class="form-control" required>
+                    <option value="">-- Select Crop --</option>
+                    {% for crop in crops %}
+                        <option value="{{ crop.id }}">{{ crop.crop_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" name="date" id="edit_date" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label>Health Status</label>
+                <select name="health_status" id="edit_health_status" class="form-control" required>
+                    <option value="">-- Select Status --</option>
+                    <option value="Healthy">Healthy</option>
+                    <option value="Fair">Fair</option>
+                    <option value="Poor">Poor</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Pest / Disease</label>
+                <input type="text" name="pest" id="edit_pest" class="form-control" placeholder="Optional">
+            </div>
+
+            <div class="form-group">
+                <label>Notes</label>
+                <textarea name="notes" id="edit_notes" class="form-control" rows="3" placeholder="Optional observations"></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button type="submit" class="btn-save">Save Changes</button>
+                <button type="button" onclick="closeEditModal()" class="btn-cancel">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+        <h3> Confirm Delete</h3>
+        <p>Are you sure you want to delete this crop health record? This action cannot be undone.</p>
+        <div class="modal-actions">
+            <button onclick="executeDelete()" class="btn-delete-confirm">Yes, Delete</button>
+            <button onclick="closeDeleteModal()" class="btn-cancel">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Edit modal functions
+let currentRecordId = null;
+
+function openEditModal(recordId) {
+    currentRecordId = recordId;
+    
+    // Fetch record data via AJAX
+    fetch(`/farmer/crop-health/${recordId}/data`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('edit_crop_id').value = data.crop_id;
+            document.getElementById('edit_date').value = data.date;
+            document.getElementById('edit_health_status').value = data.health_status;
+            document.getElementById('edit_pest').value = data.pest_or_disease || '';
+            document.getElementById('edit_notes').value = data.notes || '';
+            
+            document.getElementById('editCropHealthForm').action = `/farmer/crop-health/${recordId}/edit`;
+            document.getElementById('editCropHealthModal').style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to load record data');
+        });
+}
+
+function closeEditModal() {
+    document.getElementById('editCropHealthModal').style.display = 'none';
+}
+
+
+function openEditModal(recordId) {
+    currentRecordId = recordId;
+    
+    fetch(`/farmer/crop-health/${recordId}/data`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.has_harvest) {
+                alert('❌ Cannot edit crop health records for harvested crops.');
+                return;
+            }
+            
+            document.getElementById('edit_crop_id').value = data.crop_id;
+            document.getElementById('edit_date').value = data.date;
+            document.getElementById('edit_health_status').value = data.health_status;
+            document.getElementById('edit_pest').value = data.pest_or_disease || '';
+            document.getElementById('edit_notes').value = data.notes || '';
+            
+            document.getElementById('editCropHealthForm').action = `/farmer/crop-health/${recordId}/edit`;
+            document.getElementById('editCropHealthModal').style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to load record data');
+        });
+}
+
+// Delete functions
+//let deleteRecordId = null;
+function confirmDelete(recordId) {
+     // First check if crop is harvested
+    fetch(`/farmer/crop-health/${recordId}/data`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.has_harvest) {
+                alert('❌ Cannot delete crop health records for harvested crops.');
+                return;
+            }
+            
+            deleteRecordId = recordId;
+            document.getElementById('deleteModal').style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to check record status');
+        });
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+    deleteRecordId = null;
+}
+
+function executeDelete() {
+    if (deleteRecordId) {
+        window.location.href = `/farmer/crop-health/${deleteRecordId}/delete`;
+    }
+}
+
+// Close modals when clicking outside
+window.onclick = function(event) {
+    const editModal = document.getElementById('editCropHealthModal');
+    const deleteModal = document.getElementById('deleteModal');
+    if (event.target == editModal) {
+        closeEditModal();
+    }
+    if (event.target == deleteModal) {
+        closeDeleteModal();
+    }
+}
+</script>
+
+
+{% endblock %}

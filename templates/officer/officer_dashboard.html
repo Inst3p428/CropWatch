@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="dashboard-container">
+    <h2 class="dashboard-title"> Officer Dashboard</h2>
+
+    <!--<div class="dashboard-actions">
+    <a href="{{ url_for('auth.logout') }}" class="btn logout">🚪 Logout</a>
+</div> -->
+
+    <!-- COUNTY FILTER WITH STATS -->
+    <div class="filter-card">
+    <form method="GET" action="{{ url_for('officer.officer_dashboard') }}">
+        <div class="filter-group">
+            <label><strong> County:</strong></label>
+            <select name="county" onchange="this.form.submit()" class="filter-select">
+                <option value="">All Counties</option>
+                {% for c in counties %}
+                    <option value="{{ c }}" {% if c == selected_county %}selected{% endif %}>
+                        {{ c }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="filter-group" style="margin-top: 10px;">
+            <label><strong> Period:</strong></label>
+            <select name="period" onchange="toggleCustomDates(this.value); this.form.submit()" class="filter-select">
+                <option value="all" {% if selected_period == 'all' %}selected{% endif %}>All Time</option>
+                <option value="this_year" {% if selected_period == 'this_year' %}selected{% endif %}>This Year</option>
+                <option value="last_30_days" {% if selected_period == 'last_30_days' %}selected{% endif %}>Last 30 Days</option>
+                <option value="custom" {% if selected_period == 'custom' %}selected{% endif %}>Custom Range</option>
+            </select>
+        </div>
+        
+        <div id="custom-dates" style="display: {% if selected_period == 'custom' %}flex{% else %}none{% endif %}; gap: 10px; margin-top: 10px;">
+            <div>
+                <label>From:</label>
+                <input type="date" name="start_date" value="{{ start_date }}" class="filter-select">
+            </div>
+            <div>
+                <label>To:</label>
+                <input type="date" name="end_date" value="{{ end_date }}" class="filter-select">
+            </div>
+            <button type="submit" class="btn-small">Apply</button>
+        </div>
+    </form>
+    
+    {% if selected_county %}
+    <div class="active-filter">
+        Showing data for: <strong>{{ selected_county }}</strong>
+        <a href="{{ url_for('officer.officer_dashboard', period=selected_period) }}" class="clear-filter">✕ Clear County</a>
+    </div>
+    {% endif %}
+</div>
+
+    <!-- ================= KPI CARDS ================= -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-icon"></div>
+            <div class="kpi-content">
+                <h4>Total Farmers</h4>
+                <p class="kpi-value">{{ total_farmers }}</p>
+                <!--<small>{{ "1 farmer" if total_farmers == 1 else total_farmers|string + " farmers" }}</small>-->
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-icon"></div>
+            <div class="kpi-content">
+                <h4>Total Crops</h4>
+                <p class="kpi-value">{{ total_crops }}</p>
+                <small>{{ "1 crop type" if total_crops == 1 else total_crops|string + " crop types" }}</small>
+            </div>
+        </div>
+
+        <div class="kpi-card">
+    <div class="kpi-icon"></div>
+    <div class="kpi-content">
+        <h4>
+            {% if selected_period == 'this_year' %}
+                Yield (This Year)
+            {% elif selected_period == 'last_30_days' %}
+                Yield (Last 30 Days)
+            {% elif selected_period == 'custom' %}
+                Yield (Selected Period)
+            {% else %}
+                Total Yield (All Time)
+            {% endif %}
+        </h4>
+        <p class="kpi-value">{{ total_period_yield }} kg</p>
+        {% if comparison %}
+            <!--<small class="trend-{{ comparison.trend }}">
+                {% if comparison.trend == 'up' %}▲{% elif comparison.trend == 'down' %}▼{% endif %}
+                {{ comparison.change }}% vs previous period
+            </small>-->
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add this new card for top crop -->
+<div class="kpi-card success-card">
+    <div class="kpi-icon"></div>
+    <div class="kpi-content">
+        <h4>Top Crop</h4>
+        <p class="kpi-value">{{ top_crop.name }}</p>
+        <small>{{ top_crop.yield }} kg </small>
+    </div>
+</div>
+
+
+        <div class="kpi-card alert-card">
+            <div class="kpi-icon"></div>
+            <div class="kpi-content">
+                <h4>Health Issues</h4>
+                <p class="kpi-value">{{ active_issues }}</p>
+                <!--<small>{{ "1 crop needs attention" if active_issues == 1 else active_issues|string + " crops need attention" }}</small>-->
+            </div>
+        </div>
+
+        <!-- NEW ROW: Engagement Metrics -->
+        {% if county_comparison %}
+        <div class="kpi-card comparison-card">
+            <div class="kpi-icon"></div>
+            <div class="kpi-content">
+                <h4>vs Other Counties</h4>
+                <p class="kpi-value">{{ county_comparison.county_score }}%</p>
+                <small>Others: {{ county_comparison.others_score }}%</small>
+            </div>
+        </div>
+        {% else %}
+        <div class="kpi-card comparison-card">
+            <!--<div class="kpi-icon"></div>-->
+            <div class="kpi-content">
+                <h4>Select County</h4>
+                <p class="kpi-value">—</p>
+                <small>Filter to see comparison</small>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ================= CHART GRID ================= -->
+    <div class="chart-grid">
+        <div class="chart-card">
+        <div class="chart-header">
+            <h3> Yield per Crop</h3>
+            {% if crop_names %}
+            <!--<span class="chart-total">Total: {{ total_yield }} kg</span>-->
+            {% endif %}
+        </div>
+        
+        <!-- Chart Container -->
+        <div id="yieldChart" style="height: 300px;"></div>
+        
+        <!-- Crop Selector Dropdown -->
+        <div class="crop-selector">
+            <label for="cropSelect"> Focus on crop:</label>
+            <select id="cropSelect" onchange="filterYieldData(this.value)" class="filter-select">
+                <option value="all">All Crops</option>
+                {% for crop in per_crop_yield %}
+                <option value="{{ crop.crop }}">{{ crop.crop }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        {% if not crop_names %}
+        <p class="no-data">No yield data available for selected county</p>
+        {% endif %}
+    </div>
+
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3> Crop Health Distribution</h3>
+                {% if health_counts %}
+                <span class="chart-total">Total Crops: {{ health_counts|sum }}</span>
+                {% endif %}
+            </div>
+            <div id="healthChart" style="height: 300px;"></div>
+            <div class="health-legend">
+                {% if health_counts %}
+                    <div class="legend-item">
+                        <span class="color-dot healthy"></span>
+                        <span>Healthy: {{ health_counts[0] if health_counts|length > 0 else 0 }}</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="color-dot fair"></span>
+                        <span>Fair: {{ health_counts[1] if health_counts|length > 1 else 0 }}</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="color-dot poor"></span>
+                        <span>Poor: {{ health_counts[2] if health_counts|length > 2 else 0 }}</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <!-- Yield Breakdown Table (Now under the chart) -->
+<div class="table-card" id="yieldBreakdownTable">
+    <div class="table-header">
+        <h3> Detailed Yield Breakdown</h3>
+        <div class="table-controls">
+            <span class="record-count" id="cropCount">{{ per_crop_yield|length }} crop{% if per_crop_yield|length != 1 %}s{% endif %}</span>
+            <button class="btn-small" onclick="exportToCSV()"> Export CSV</button>
+        </div>
+    </div>
+    
+    {% if per_crop_yield %}
+    <div class="table-responsive">
+        <table class="styled-table" id="yieldTable">
+            <thead>
+                <tr>
+                    <th>Crop</th>
+                    <th>Total Yield (kg)</th>
+                    <th>% of Total</th>
+                    <th>Avg per Farmer</th>
+                    <th>Farmers</th>
+                    <!--<th>Trend</th>-->
+                </tr>
+            </thead>
+            <tbody>
+                {% for crop in per_crop_yield %}
+                <tr data-crop="{{ crop.crop }}" class="crop-row">
+                    <td>
+                        <span class="crop-name">
+                            {% if crop.crop == 'Maize' %}
+                            {% elif crop.crop == 'Rice' %}
+                            {% elif crop.crop == 'Beans' %}
+                            {% else %}
+                            {% endif %}
+                            {{ crop.crop }}
+                        </span>
+                    </td>
+                    <td><strong>{{ crop.yield }} kg</strong></td>
+                    <td>{{ crop.percentage }}%</td>
+                    <td>{{ crop.avg_per_farmer }} kg</td>
+                    <td>{{ crop.farmer_count }}</td>
+                    <!--<td>
+                        {% if crop.trend == 'up' %}
+                        <span class="trend-up">▲ {{ crop.trend_percentage }}%</span>
+                        {% elif crop.trend == 'down' %}
+                        <span class="trend-down">▼ {{ crop.trend_percentage }}%</span>
+                        {% else %}
+                        <span class="trend-flat">● Stable</span>
+                        {% endif %}
+                    </td>-->
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Summary Stats -->
+    <div class="table-footer">
+        <div class="summary-stats">
+            <!--<span> Total: <strong>{{ total_period_yield }} kg</strong></span>-->
+            <!--<span> Avg per crop: <strong>{{ (total_period_yield / per_crop_yield|length)|round(1) if per_crop_yield else 0 }} kg</strong></span> -->
+            <!--<span>👥 Avg per farmer: <strong>{{ (total_period_yield / total_farmers)|round(1) if total_farmers > 0 else 0 }} kg</strong></span> -->
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>No yield data available for selected period</p>
+    </div>
+    {% endif %}
+</div>
+<br>
+<br>
+    <!-- ================= HEALTH TABLE ================= -->
+    <div class="table-card">
+        <div class="table-header">
+            <h3> Crop Health Status by Farmer</h3>
+            <span class="record-count">{{ latest_health|length }} records</span>
+        </div>
+
+        {% if latest_health %}
+        <div class="table-responsive">
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>Farmer</th>
+                        <th>County</th>
+                        <th>Crop</th>
+                        <th>Status</th>
+                        <th>Last Updated</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for farmer_id, farmer, county, crop, status, date, crop_health_id in latest_health %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('officer.farmer_profile', farmer_id=farmer_id) }}" class="farmer-link">
+                                {{ farmer }}
+                            </a>
+                        </td>
+                        <td>{{ county }}</td>
+                        <td>{{ crop }}</td>
+                        <td>
+                            <span class="status-badge {{ status|lower }}">
+                                {{ status }}
+                                {% if status in ['Fair', 'Poor'] %}
+                                <span class="attention-indicator"></span>
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>{{ date.strftime('%d %b %Y') if date else 'N/A' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>No crop health records found for selected county</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+
+<!-- CHART DATA -->
+<script>
+    const cropNames = {{ crop_names | tojson }};
+    const cropYields = {{ crop_yields | tojson }};
+    const healthLabels = {{ health_labels | tojson }};
+    const healthCounts = {{ health_counts | tojson }};
+</script>
+
+<script src="{{ url_for('static', filename='js/officer_charts.js') }}"></script>
+
+<script>
+function toggleCustomDates(value) {
+    document.getElementById('custom-dates').style.display = 
+        value === 'custom' ? 'flex' : 'none';
+}
+</script>
+
+{% endblock %}

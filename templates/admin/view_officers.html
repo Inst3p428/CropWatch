@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card">
+
+    <h2>Officers</h2>
+
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-back">
+        ← Back to Dashboard
+    </a>
+
+    <br><br>
+
+    <table style="
+        width:100%;
+        border-collapse:collapse;
+        text-align:left;
+    ">
+
+        <thead>
+            <tr style="background:#2563eb; color:white;">
+                <th style="padding:12px;">Name</th>
+                <th style="padding:12px;">Email</th>
+                <th style="padding:12px;">Role</th>
+                <th style="padding:12px;">Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for officer in officers %}
+            <tr style="border-bottom:1px solid #e5e7eb;">
+
+                <td style="padding:12px;">
+                    {{ officer.full_name }}
+                </td>
+
+                <td style="padding:12px;">
+                    {{ officer.email }}
+                </td>
+
+                <td style="padding:12px;">
+                    {{ officer.role }}
+                </td>
+
+                <td style="padding:12px; white-space:nowrap;">
+
+                    <a href="{{ url_for('admin.edit_officer', officer_id=officer.id) }}"
+                       class="btn btn-warning">
+                       Edit
+                    </a>
+
+                    <form method="POST"
+                          action="{{ url_for('admin.delete_officer', officer_id=officer.id) }}"
+                          style="display:inline;">
+
+                        <button class="btn btn-danger"
+                                onclick="return confirm('Delete this officer?')">
+                            Delete
+                        </button>
+
+                    </form>
+
+                </td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

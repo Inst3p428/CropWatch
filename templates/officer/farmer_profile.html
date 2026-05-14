@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="profile-container">
+
+    <h2 class="page-title"> Farmer Profile</h2>
+
+    <!-- PROFILE CARD -->
+    <div class="profile-card">
+        <div class="profile-grid">
+            <div>
+                <p><strong>Name:</strong><br>{{ farmer.full_name }}</p>
+                <p><strong>Email:</strong><br>{{ farmer.email }}</p>
+            </div>
+
+            <div>
+                <p><strong>County:</strong><br>{{ farmer.county }}</p>
+                <p><strong>Farm Size:</strong><br>{{ farmer.farm_size_acres }} acres</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= TABS ================= -->
+    <div class="tabs">
+
+        <button class="tab-btn active" onclick="openTab(event, 'yield')">
+             Yield Records
+        </button>
+
+        <button class="tab-btn" onclick="openTab(event, 'health')">
+             Crop Health
+        </button>
+
+        <button class="tab-btn" onclick="openTab(event, 'soil')">
+             Soil Health
+        </button>
+
+    </div>
+
+    <!-- ================= TAB CONTENT ================= -->
+
+    <!-- YIELD TAB -->
+    <div id="yield" class="tab-content active">
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>Crop</th>
+                    <th>Season</th>
+                    <th>Yield (kg)</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in farm_records %}
+                <tr>
+                    <td>{{ r.crop.crop_name }}</td>
+                    <td>{{ r.season }}</td>
+                    <td><strong>{{ r.yield_kg }}</strong></td>
+                    <td>{{r.remarks}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- CROP HEALTH TAB -->
+<div id="health" class="tab-content">
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>Crop</th>
+                <th>Status</th>
+                <th>Pest / Disease</th>
+                <th>Notes</th>
+                <th>Date</th>
+                <th>Advice</th>
+                <th>Priority</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in crop_health %}
+            <tr>
+                <td>{{ record.crop.crop_name if record.crop else 'Unknown'}}</td>
+
+                <td>
+                    <span class="status-badge
+                    {% if record.health_status == 'Healthy' %}
+                        healthy
+                    {% elif record.health_status == 'Fair' %}
+                        fair
+                    {% else %}
+                        poor
+                    {% endif %}
+                    ">
+                        {{ record.health_status }}
+                    </span>
+                </td>
+
+                <td>{{ record.pest_or_disease or 'None' }}</td>
+                <td>{{ record.notes or 'No notes' }}</td>
+                <td>{{ record.date.strftime('%d %b %Y') if record.date else 'N/A' }}</td>
+
+                {% if record.id in advisory_map %}
+                    {% set advice = advisory_map[record.id] %}
+                    <!-- Show advice if already given -->
+                    <td>
+                        <div class="advice-preview" title="{{ advice.recommendation }}">
+                            {{ advice.recommendation|truncate(50) }}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="priority-badge {{ advice.priority|lower }}">
+                            {{ advice.priority }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            {% if record.is_harvested %}
+                                <!-- Harvested crop - no actions allowed -->
+                                <span class="locked-badge" title="Cannot modify - crop has been harvested">
+                                     Harvested
+                                </span>
+                            {% else %}
+                                <!-- Not harvested - can edit/delete advice -->
+                            <button onclick="openEditModal({{ advice.id }}, '{{ advice.recommendation|replace("'", "\\'") }}', '{{ advice.priority }}', {{ record.id }})" 
+                                    class="btn-edit" title="Edit Advice">
+                                Edit
+                            </button>
+                            <button onclick="confirmDelete({{ advice.id }}, {{ record.id }})" 
+                                    class="btn-delete" title="Delete Advice">
+                                Delete
+                            </button>
+                            {% endif %}
+                            <span class="advice-given-badge" title="Advice given on {{ advice.created_at.strftime('%d %b %Y') }}">✔</span>
+                        </div>
+                    </td>
+                {% else %}
+                    <!-- Show link to give advice -->
+                    <td class="no-advice">No advice yet</td>
+                    <td class="no-priority">-</td>
+                    <td>
+                         {% if record.is_harvested %}
+                            <span class="locked-badge" title="Cannot give advice - crop has been harvested">
+                                 Harvested
+                            </span>
+                        {% else %}
+                        <a href="{{ url_for('officer.advisory', crop_health_id=record.id) }}" class="btn-give-advice">
+                            Give Advice
+                        </a>
+                        {% endif %}
+                    </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Edit Advice Modal -->
+<div id="editAdviceModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeEditModal()">&times;</span>
+        <h3>Edit Advisory</h3>
+        <form id="editAdviceForm" method="POST">
+            <input type="hidden" name="crop_health_id" id="edit_crop_health_id">
+            
+            <div class="form-group">
+                <label for="edit_recommendation">Recommendation</label>
+                <textarea name="recommendation" id="edit_recommendation" class="form-control" rows="4" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="edit_priority">Priority</label>
+                <select name="priority" id="edit_priority" class="form-control" required>
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button type="submit" class="btn-save">Save Changes</button>
+                <button type="button" onclick="closeEditModal()" class="btn-cancel">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+        <h3> Confirm Delete</h3>
+        <p>Are you sure you want to delete this advice? This action cannot be undone.</p>
+        <div class="modal-actions">
+            <button onclick="executeDelete()" class="btn-delete-confirm">Yes, Delete</button>
+            <button onclick="closeDeleteModal()" class="btn-cancel">Cancel</button>
+        </div>
+    </div>
+</div>
+
+
+    <!-- SOIL HEALTH TAB -->
+    <div id="soil" class="tab-content">
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Moisture (%)</th>
+                    <th>Observation</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in soil_health %}
+                <tr>
+                    <td>{{ s.date }}</td>
+                    <td>{{ s.moisture_percentage }}%</td>
+                    <td>{{ s.observation }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="back-link">
+        <a href="{{ url_for('officer.officer_dashboard') }}" class="btn-secondary">
+            ⬅ Back to Dashboard
+        </a>
+    </div>
+
+</div>
+
+<!-- ================= TAB SCRIPT ================= -->
+<script>
+function openTab(evt, tabName) {
+
+    let contents = document.getElementsByClassName("tab-content");
+    let buttons = document.getElementsByClassName("tab-btn");
+
+    for (let i = 0; i < contents.length; i++) {
+        contents[i].classList.remove("active");
+    }
+
+    for (let i = 0; i < buttons.length; i++) {
+        buttons[i].classList.remove("active");
+    }
+
+    document.getElementById(tabName).classList.add("active");
+    evt.currentTarget.classList.add("active");
+}
+</script>
+<script>
+// Edit modal functions
+let currentAdviceId = null;
+
+function openEditModal(adviceId, recommendation, priority, cropHealthId) {
+    currentAdviceId = adviceId;
+    document.getElementById('edit_recommendation').value = recommendation;
+    document.getElementById('edit_priority').value = priority;
+    document.getElementById('edit_crop_health_id').value = cropHealthId;
+    document.getElementById('editAdviceForm').action = `/officer/advice/${adviceId}/edit`;
+    document.getElementById('editAdviceModal').style.display = 'block';
+}
+
+function closeEditModal() {
+    document.getElementById('editAdviceModal').style.display = 'none';
+}
+
+// Delete functions
+let deleteAdviceId = null;
+let deleteCropHealthId = null;
+
+function confirmDelete(adviceId, cropHealthId) {
+    deleteAdviceId = adviceId;
+    deleteCropHealthId = cropHealthId;
+    document.getElementById('deleteModal').style.display = 'block';
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+    deleteAdviceId = null;
+    deleteCropHealthId = null;
+}
+
+function executeDelete() {
+    if (deleteAdviceId) {
+        window.location.href = `/officer/advice/${deleteAdviceId}/delete?crop_health_id=${deleteCropHealthId}`;
+    }
+}
+
+// Close modals when clicking outside
+window.onclick = function(event) {
+    const editModal = document.getElementById('editAdviceModal');
+    const deleteModal = document.getElementById('deleteModal');
+    if (event.target == editModal) {
+        closeEditModal();
+    }
+    if (event.target == deleteModal) {
+        closeDeleteModal();
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block content %}
+<a href="{{ url_for('farmer.dashboard') }}" class="btn-secondary">
+                ← Back to Dashboard
+            </a>
+            <br><br>
+
+<div class="form-page">
+
+    <div class="form-card">
+
+        <div class="form-header">
+            <h2> Add Farm Record</h2>
+        </div>
+
+        <!-- FLASH MESSAGES -->
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="flash-messages">
+              {% for message in messages %}
+                <p>{{ message }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" class="styled-form">
+
+            <div class="form-group">
+                <label>Crop</label>
+                <select name="crop_id" required>
+                    <option value="">-- Select Crop --</option>
+                    {% for crop in crops %}
+                        <option value="{{ crop.id }}">{{ crop.crop_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Season</label>
+                <input type="text" name="season" placeholder="e.g. Long Rains 2026" required>
+            </div>
+
+            <div class="form-group">
+                <label>Planting Date</label>
+                <input type="date" name="planting_date">
+            </div>
+
+            <div class="form-group">
+                <label>Harvest Date</label>
+                <input type="date" name="harvest_date">
+            </div>
+
+            <div class="form-group">
+                <label>Yield (kg)</label>
+                <input type="number" step="0.01" name="yield_kg" required>
+            </div>
+
+            <div class="form-group">
+                <label>Remarks</label>
+                <textarea name="remarks" rows="3"></textarea>
+            </div>
+
+            <button type="submit" class="btn-primary">
+                Save Record
+            </button>
+
+        </form>
+
+    </div>
+</div>
+
+<!-- FARM RECORD TABLE -->
+<div class="table-card" style="margin:40px;">
+
+    <h3>Farm Records</h3>
+
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>Crop</th>
+                <th>Season</th>
+                <th>Planting Date</th>
+                <th>Harvest Date</th>
+                <th>Yield (kg)</th>
+                <th>Remarks</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for record in records %}
+            <tr>
+                <td>{{ record.crop.crop_name }}</td>
+                <td>{{ record.season }}</td>
+                <td>{{ record.planting_date or 'N/A' }}</td>
+                <td>{{ record.harvest_date or 'N/A' }}</td>
+                <td>{{ record.yield_kg }}</td>
+                <td>{{ record.remarks }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card">
+<h2>Farmers</h2>
+<a href="{{ url_for('admin.dashboard') }}" class="btn btn-back">
+        ← Back to Dashboard
+    </a>
+
+    <br><br>
+<table style="
+        width:100%;
+        border-collapse:collapse;
+        text-align:left;
+    ">
+  <thead>
+    <tr style="background:#2563eb; color:white;">
+      <th style="padding:12px;">Name </th>
+      <th style="padding:12px;">Email</th>
+      <th style="padding:12px;">County</th>
+      <th style="padding:12px;">Actions</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for farmer in farmers %}
+    <tr style="border-bottom:1px solid #e5e7eb;">
+      <td style="padding:12px;">{{ farmer.full_name }}</td>
+      <td style="padding:12px;">{{ farmer.email }}</td>
+      <td style="padding:12px;">{{ farmer.county }}</td>
+
+      <td style="padding:12px; white-space:nowrap;">
+        <a href="{{ url_for('admin.edit_farmer', farmer_id=farmer.id) }}" 
+        class="btn-warning">Edit</a>
+        <form method="post"
+          action="{{ url_for('admin.delete_farmer', farmer_id=farmer.id) }}"
+          style = "display: inline;">
+           <button class="btn-danger"
+           onclick="return confirm('Delete this farmer?')">
+           Delete
+          </button>
+        </form>
+
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}
