@@ -1,4 +1,4 @@
-#CropWatch - Farm Management System
+# CropWatch - Farm Management System
 CropWatch is a comprehensive farm management system designed to help farmers track crop health, soil conditions, farm records, and receive expert advice from agricultural officers.
 
 # Features
@@ -63,28 +63,34 @@ cd CropWatch
 2. Create and activate virtual environment
 Windows:
 
-bash
+```
 python -m venv venv
 venv\Scripts\activate
 Mac/Linux:
-
-bash
+```
+```
 python3 -m venv venv
 source venv/bin/activate
+```
 3. Install dependencies
-bash
+```
 pip install -r requirements.txt
+```
 4. Configure environment variables
 Create a .env file in the root directory:
-
+```
 env
 SECRET_KEY=your-secret-key-here
 OPENWEATHER_API_KEY=your-openweather-api-key
 DATABASE_URL=sqlite:///cropwatch.db
+```
 5. Initialize the database
+```
 bash
 flask db upgrade
+```
 6. Add initial crops
+```
 bash
 python
 >>> from app import app, db
@@ -94,12 +100,17 @@ python
 ...     for c in crops:
 ...         db.session.add(Crop(crop_name=c))
 ...     db.session.commit()
+```
 7. Run the application
+```
 bash
 python app.py
+```
 Visit http://127.0.0.1:5000 in your browser.
 
+
 # Project Structure
+```
 text
 CropWatch/
 ├── app.py                 # Main application file
@@ -134,6 +145,7 @@ CropWatch/
 │   └── js/
 └── scripts/               # Utility scripts
     └── fetch_rainfall.py  # Rainfall data fetcher
+```
 # User Roles
 Farmer Registration
 Farmers register through the public registration page
@@ -151,6 +163,7 @@ Admin Account
 Create first admin via command line:
 
 python
+```
 from app import app, db
 from models import Admin
 from werkzeug.security import generate_password_hash
@@ -164,11 +177,13 @@ with app.app_context():
     )
     db.session.add(admin)
     db.session.commit()
+```
 # Rainfall Data
 Rainfall data is fetched daily from OpenWeatherMap API:
-
+```
 bash
 python scripts/fetch_rainfall.py
+```
 # Data Export
 Farmers can export their data as CSV files:
 
