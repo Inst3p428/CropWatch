@@ -94,11 +94,12 @@ def fetch_all_farmers_rainfall():
     ).filter(RainfallData.date == yesterday).group_by(RainfallData.county).all()
     
     if summary:
-        print("\n--- Daily Rainfall Summary ---")
+        print("\n Daily Rainfall Summary ")
         for county, avg in summary:
             print(f"{county}: {round(avg, 1)} mm average")
     else:
         print("\nNo rainfall data recorded for yesterday")
+        
 
 if __name__ == "__main__":
     with app.app_context():

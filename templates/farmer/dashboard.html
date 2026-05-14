@@ -12,7 +12,11 @@
         <!--<button class="tab-btn" onclick="openTab(event,'performance')">Crop Performance</button>-->
         <!--<button class="tab-btn" onclick="openTab(event,'soil')">Soil Health</button>-->
         <button class="tab-btn" onclick="openTab(event,'alerts')">Notifications</button>
-        
+        <br>
+        <br>
+        <a href="{{ url_for('farmer.export_crop_health') }}" class="tab-btn"> Export Crop Health</a>
+        <a href="{{ url_for('farmer.export_farm_records') }}" class="tab-btn"> Export Farm Records</a>
+        <a href="{{ url_for('farmer.export_soil_health') }}" class="tab-btn"> Export Soil Health</a>
 
 
     </div>
@@ -22,6 +26,7 @@
         <a href="{{ url_for('farmer.add_soil_health') }}" class="btn"> Add Soil Health</a>
         <a href="{{ url_for('farmer.add_crop_health') }}" class="btn"> Add Crop Health</a>
         <a href="{{ url_for('farmer.add_farm_record') }}" class="btn"> Add Farm Record</a>
+        
         <!--<a href="{{ url_for('auth.logout') }}" class="btn logout"> Logout</a> -->
     </div>
     

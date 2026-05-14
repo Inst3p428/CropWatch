@@ -11,8 +11,8 @@ officer_bp = Blueprint('officer', __name__,url_prefix='/officer')
 @officer_bp.route('/dashboard')
 @login_required
 def officer_dashboard():
-    if current_user.role != 'officer':
-        return "Unauthorized", 403
+    """if current_user.role != 'officer':
+        return "Unauthorized", 403"""
     
     # Get selected county from query params
     selected_county = request.args.get('county', '')
@@ -358,8 +358,8 @@ def officer_dashboard():
 @login_required
 def farmer_profile(farmer_id):
     
-    if current_user.role != 'officer':
-        return "Unauthorized", 403
+    """if current_user.role != 'officer':
+        return "Unauthorized", 403"""
 
     farmer = Farmer.query.get_or_404(farmer_id)
 
@@ -425,8 +425,8 @@ def farmer_profile(farmer_id):
 @login_required
 def advisory(crop_health_id):
     
-    if current_user.role != 'officer':
-        return "Unauthorized", 403
+    """if current_user.role != 'officer':
+        return "Unauthorized", 403"""
       # Add debug print
     #print(f"Looking for crop_health_id: {crop_health_id}")
     
@@ -467,8 +467,8 @@ def advisory(crop_health_id):
 @login_required
 def edit_advice(advice_id):
     
-    if current_user.role != 'officer':
-        return "Unauthorized", 403
+    """if current_user.role != 'officer':
+        return "Unauthorized", 403"""
     
     advisory = Advisory.query.get_or_404(advice_id)
     crop_health_id = request.form.get('crop_health_id')
@@ -503,8 +503,8 @@ def edit_advice(advice_id):
 @login_required
 def delete_advice(advice_id):
     
-    if current_user.role != 'officer':
-        return "Unauthorized", 403
+    """if current_user.role != 'officer':
+        return "Unauthorized", 403"""
     
     advisory = Advisory.query.get_or_404(advice_id)
     crop_health_id = request.args.get('crop_health_id')
@@ -539,8 +539,8 @@ def delete_advice(advice_id):
 @login_required
 def view_farmer_advice(farmer_id):
     
-    if current_user.role != 'officer':
-        return "Unauthorized", 403
+    """if current_user.role != 'officer':
+        return "Unauthorized", 403"""
     
     
     farmer = Farmer.query.get_or_404(farmer_id)

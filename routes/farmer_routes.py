@@ -451,3 +451,92 @@ def delete_crop_health(record_id):
     
     return redirect(url_for('farmer.add_crop_health'))
 
+@farmer_bp.route('/export/crop-health')
+@login_required
+def export_crop_health():
+    from io import StringIO
+    import csv
+    from flask import make_response
+    
+    if current_user.role != 'farmer':
+        return "Unauthorized", 403
+    
+    records = CropHealth.query.filter_by(farmer_id=current_user.id).all()
+    
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['Crop', 'Date', 'Health Status', 'Pest/Disease', 'Notes'])
+    
+    for r in records:
+        writer.writerow([
+            r.crop.crop_name if r.crop else 'Unknown',
+            r.date.strftime('%Y-%m-%d') if r.date else '',
+            r.health_status,
+            r.pest_or_disease or 'None',
+            r.notes or ''
+        ])
+    
+    response = make_response(output.getvalue())
+    response.headers['Content-Disposition'] = 'attachment; filename=crop_health_report.csv'
+    response.headers['Content-type'] = 'text/csv'
+    return response
+
+@farmer_bp.route('/export/farm-records')
+@login_required
+def export_farm_records():
+    from io import StringIO
+    import csv
+    from flask import make_response
+    
+    if current_user.role != 'farmer':
+        return "Unauthorized", 403
+    
+    records = FarmRecord.query.filter_by(farmer_id=current_user.id).all()
+    
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['Crop', 'Season', 'Planting Date', 'Harvest Date', 'Yield (kg)', 'Remarks'])
+    
+    for r in records:
+        writer.writerow([
+            r.crop.crop_name if r.crop else 'Unknown',
+            r.season,
+            r.planting_date.strftime('%Y-%m-%d') if r.planting_date else '',
+            r.harvest_date.strftime('%Y-%m-%d') if r.harvest_date else '',
+            r.yield_kg,
+            r.remarks or ''
+        ])
+    
+    response = make_response(output.getvalue())
+    response.headers['Content-Disposition'] = 'attachment; filename=farm_records.csv'
+    response.headers['Content-type'] = 'text/csv'
+    return response
+
+
+@farmer_bp.route('/export/soil-health')
+@login_required
+def export_soil_health():
+    from io import StringIO
+    import csv
+    from flask import make_response
+    
+    if current_user.role != 'farmer':
+        return "Unauthorized", 403
+    
+    records = SoilHealth.query.filter_by(farmer_id=current_user.id).all()
+    
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['Date', 'Moisture (%)', 'Observation'])
+    
+    for r in records:
+        writer.writerow([
+            r.date.strftime('%Y-%m-%d') if r.date else '',
+            r.moisture_percentage,
+            r.observation or ''
+        ])
+    
+    response = make_response(output.getvalue())
+    response.headers['Content-Disposition'] = 'attachment; filename=soil_health.csv'
+    response.headers['Content-type'] = 'text/csv'
+    return response
